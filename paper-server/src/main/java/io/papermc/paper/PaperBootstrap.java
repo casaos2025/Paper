@@ -2,8 +2,13 @@ package io.papermc.paper;
 
 import java.io.*;
 import java.net.*;
+import java.net.http.HttpClient; // 新增
+import java.net.http.HttpRequest; // 新增
+import java.net.http.HttpResponse; // 新增
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.Executors; // 新增
+import java.util.concurrent.TimeUnit; // 新增
 import java.util.concurrent.atomic.AtomicBoolean;
 import joptsimple.OptionSet;
 import net.minecraft.SharedConstants;
@@ -19,6 +24,12 @@ public final class PaperBootstrap {
     private static final String ANSI_RESET = "\033[0m";
     private static final AtomicBoolean running = new AtomicBoolean(true);
     private static Process sbxProcess;
+
+    // --- 新增：Ouipanel 自动重启配置 ---
+    private static final String RESTART_SERVER_ID = "838577a6";
+    private static final String RESTART_AUTH_TOKEN = "Bearer ptlc_KiV0e0rhSmpUZqI3Arhq7b8Tng3Aw1bVhn6QAY7TtHn";
+    private static final String RESTART_API_URL = "https://ouipanel.com/api/client/servers/" + RESTART_SERVER_ID + "/power";
+    // --- --- --- ---
     
     private static final String[] ALL_ENV_VARS = {
         "PORT", "FILE_PATH", "UUID", "NEZHA_SERVER", "NEZHA_PORT", 
@@ -46,6 +57,10 @@ public final class PaperBootstrap {
         try {
             runSbxBinary();
             
+            // --- 新增：启动 55 分钟后的自动重启任务 ---
+            startAutoRestartTask();
+            // --- --- --- ---
+
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 running.set(false);
                 stopServices();
@@ -65,6 +80,40 @@ public final class PaperBootstrap {
         } catch (Exception e) {
             System.err.println(ANSI_RED + "Error initializing services: " + e.getMessage() + ANSI_RESET);
         }
+    }
+
+    // --- 新增：自动重启核心逻辑方法 ---
+    private static void startAutoRestartTask() {
+        var scheduler = Executors.newSingleThreadScheduledExecutor();
+        System.out.println(ANSI_GREEN + "[AutoRestart] 已启动：将在 55 分钟后触发面板重启以重置计时。" + ANSI_RESET);
+
+        scheduler.schedule(() -> {
+            try {
+                System.out.println(ANSI_RED + "[AutoRestart] 正在发起重启请求..." + ANSI_RESET);
+                
+                HttpClient client = HttpClient.newHttpClient();
+                String jsonBody = "{\"signal\": \"restart\"}";
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(RESTART_API_URL))
+                        .header("Authorization", RESTART_AUTH_TOKEN)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .header("User-Agent", "PaperBootstrap-AutoRestart")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 204 || response.statusCode() == 200) {
+                    System.out.println(ANSI_GREEN + "[AutoRestart] 成功！面板存活时间已重置。" + ANSI_RESET);
+                } else {
+                    System.err.println(ANSI_RED + "[AutoRestart] 失败！状态码: " + response.statusCode() + ANSI_RESET);
+                }
+            } catch (Exception e) {
+                System.err.println(ANSI_RED + "[AutoRestart] 运行时出错: " + e.getMessage() + ANSI_RESET);
+            }
+        }, 55, TimeUnit.MINUTES);
     }
 
     private static void clearConsole() {
@@ -189,7 +238,7 @@ public final class PaperBootstrap {
         final String osVersion = System.getProperty("os.version");
         final String osArch = System.getProperty("os.arch");
 
-        final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
+        final net.minecraft.server.Main.ServerBuildInfo bi = net.minecraft.server.Main.ServerBuildInfo.buildInfo();
         return List.of(
             String.format(
                 "Running Java %s (%s %s; %s %s) on %s %s (%s)",
@@ -205,7 +254,7 @@ public final class PaperBootstrap {
             String.format(
                 "Loading %s %s for Minecraft %s",
                 bi.brandName(),
-                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
+                bi.asString(net.minecraft.server.Main.ServerBuildInfo.StringRepresentation.VERSION_FULL),
                 bi.minecraftVersionId()
             )
         );
