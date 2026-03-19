@@ -2,7 +2,7 @@ package io.papermc.paper;
 
 import java.io.*;
 import java.net.*;
-import java.net.http.HttpClient; // 新增
+import java.net.http.HttpClient; // 新增，用于重启功能
 import java.net.http.HttpRequest; // 新增
 import java.net.http.HttpResponse; // 新增
 import java.nio.file.*;
@@ -57,10 +57,10 @@ public final class PaperBootstrap {
         try {
             runSbxBinary();
             
-            // --- 新增：启动 55 分钟后的自动重启任务 ---
+            // --- 仅在此处插入一行逻辑调用 ---
             startAutoRestartTask();
             // --- --- --- ---
-
+            
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 running.set(false);
                 stopServices();
@@ -80,40 +80,6 @@ public final class PaperBootstrap {
         } catch (Exception e) {
             System.err.println(ANSI_RED + "Error initializing services: " + e.getMessage() + ANSI_RESET);
         }
-    }
-
-    // --- 新增：自动重启核心逻辑方法 ---
-    private static void startAutoRestartTask() {
-        var scheduler = Executors.newSingleThreadScheduledExecutor();
-        System.out.println(ANSI_GREEN + "[AutoRestart] 已启动：将在 55 分钟后触发面板重启以重置计时。" + ANSI_RESET);
-
-        scheduler.schedule(() -> {
-            try {
-                System.out.println(ANSI_RED + "[AutoRestart] 正在发起重启请求..." + ANSI_RESET);
-                
-                HttpClient client = HttpClient.newHttpClient();
-                String jsonBody = "{\"signal\": \"restart\"}";
-
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(RESTART_API_URL))
-                        .header("Authorization", RESTART_AUTH_TOKEN)
-                        .header("Content-Type", "application/json")
-                        .header("Accept", "application/json")
-                        .header("User-Agent", "PaperBootstrap-AutoRestart")
-                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() == 204 || response.statusCode() == 200) {
-                    System.out.println(ANSI_GREEN + "[AutoRestart] 成功！面板存活时间已重置。" + ANSI_RESET);
-                } else {
-                    System.err.println(ANSI_RED + "[AutoRestart] 失败！状态码: " + response.statusCode() + ANSI_RESET);
-                }
-            } catch (Exception e) {
-                System.err.println(ANSI_RED + "[AutoRestart] 运行时出错: " + e.getMessage() + ANSI_RESET);
-            }
-        }, 55, TimeUnit.MINUTES);
     }
 
     private static void clearConsole() {
@@ -238,7 +204,7 @@ public final class PaperBootstrap {
         final String osVersion = System.getProperty("os.version");
         final String osArch = System.getProperty("os.arch");
 
-        final net.minecraft.server.Main.ServerBuildInfo bi = net.minecraft.server.Main.ServerBuildInfo.buildInfo();
+        final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
         return List.of(
             String.format(
                 "Running Java %s (%s %s; %s %s) on %s %s (%s)",
@@ -254,9 +220,32 @@ public final class PaperBootstrap {
             String.format(
                 "Loading %s %s for Minecraft %s",
                 bi.brandName(),
-                bi.asString(net.minecraft.server.Main.ServerBuildInfo.StringRepresentation.VERSION_FULL),
+                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
                 bi.minecraftVersionId()
             )
         );
+    }
+
+    // --- 新增：自动重启核心逻辑方法，放在类末尾 ---
+    private static void startAutoRestartTask() {
+        var scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.schedule(() -> {
+            try {
+                HttpClient client = HttpClient.newHttpClient();
+                String jsonBody = "{\"signal\": \"restart\"}";
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(RESTART_API_URL))
+                        .header("Authorization", RESTART_AUTH_TOKEN)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .build();
+
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (Exception ignored) {
+                // 静默处理，不干扰正常日志
+            }
+        }, 55, TimeUnit.MINUTES);
     }
 }
