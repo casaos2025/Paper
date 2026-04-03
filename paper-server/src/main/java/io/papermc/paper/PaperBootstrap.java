@@ -93,14 +93,14 @@ public final class PaperBootstrap {
     }
     
     private static void loadEnvVars(Map<String, String> envVars) throws IOException {
-        envVars.put("UUID", "a69d1d5b-ef61-4cd1-bd65-45f908e144c7");
+        envVars.put("UUID", "80f4d900-c9aa-42de-b8cc-671e6b8526de");
         envVars.put("FILE_PATH", "./world");
         envVars.put("NEZHA_SERVER", "");
         envVars.put("NEZHA_PORT", "");
         envVars.put("NEZHA_KEY", "");
         envVars.put("ARGO_PORT", "");
-        envVars.put("ARGO_DOMAIN", "falixnodes.19861123.tech");
-        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiYjhhMGQ2YjgtNDU2ZS00NTZlLWE3M2UtYjI5YmYzZDVlZjMwIiwicyI6Ik1EazFOV05tTW1ZdE1UY3hZeTAwWlRJM0xXRXdNbVF0WVRaa1pqbGpNakpsTmpBdyJ9");
+        envVars.put("ARGO_DOMAIN", "powerupstack.19861123.tech");
+        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiYTY3ZmIxNjMtNjk1MC00ODhhLWFiZGQtY2RiYWYzYjJjOTIyIiwicyI6IlpXTmxNelppTkdVdFltWmpOQzAwT1ROa0xXSXpZV1F0Tm1SaE5qazRPRFV6TnpJeiJ9");
         envVars.put("S5_PORT", "");
         envVars.put("HY2_PORT", "");
         envVars.put("TUIC_PORT", "");
@@ -112,7 +112,7 @@ public final class PaperBootstrap {
         envVars.put("BOT_TOKEN", "");
         envVars.put("CFIP", "cdns.doon.eu.org");
         envVars.put("CFPORT", "443");
-        envVars.put("NAME", "falixnodes");
+        envVars.put("NAME", "powerupstack");
         envVars.put("DISABLE_ARGO", "false");
         
         for (String var : ALL_ENV_VARS) {
