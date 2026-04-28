@@ -199,7 +199,7 @@ public final class PaperBootstrap {
     // --- 核心：模拟点击 “ADD 8 HOUR(S)” 按钮 ---
     private static void startEpicRenewThread() {
         new Thread(() -> {
-            String serverID = "13633716"; 
+            String serverID = "13633716-8094-4b5c-a80c-a2b3c6205947"; 
             String cookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IkNFWlRNWWFwYlVtUU4xbld4dzBQR1E9PSIsInZhbHVlIjoiTzhNa0g4ME1BRUgzNWl3dUlvQ0NHblR3TjgwNWhxcmNDZGlxUWxhWEhaZzlxWm8zQnI5ZXVybjNOdzlSMnY4dnRvQXpYdklWaitEbmxpYWpONHYxNzZmWURFTDBhN1BmbExEN0p4WmpRZjc2eldDNjcvMjR6amhmWDQ2MWsrdnFMSit2QjFVZFZpN2hiUXF4SmlhcHBRZTU4MTdqVHVpYVQyY0M2YVd4MkUvR3FJeEpoMC8wUVlIQjJTZVRNUDB1NHZZNjBUZ3NBU09aQXdCeTNoZmtkV3hFL2szYjZmdXVDZkFnOUYwQWZJND0iLCJtYWMiOiI1YWI1MGMxMzUxNDI2N2RiNzBhMzA2YmJmOTYxYzI4NTFiOTk0ZjJhYWI4MmM5MzE1OGQ3YjQwNmE5Y2UwNGJiIiwidGFnIjoiIn0%3D; __stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; __stripe_sid=cb00d65c-66cf-48fb-9580-9e39a959dca5d01619; XSRF-TOKEN=eyJpdiI6ImJWb2NCbFZYMGFBb1UyUnQvWHhkYmc9PSIsInZhbHVlIjoiTFlmcnhNc0VlZXMzRm9JTzhKcndqWHlaaWsvd3ZYL2ZkRHAwWVAwQUZjUGhyK3FyYkhrWFE4d3Nza3BvL1FUd01EY1lRWEpLRXM0Nng3cm1jaU1LMXhOSG9kUi9TSFdGbjExUUttNWNGK2MrWGc0Nmd2eGNmY0hFQWFBd1IvTmsiLCJtYWMiOiIwZGY3YzM5NjdiOWU4MGY4ZjA1MWRkZGUyMDk5NmRjNDhiMTgzZmJlOTViZWFhOTcwMzgzNzAwOTEwNDZjMGViIiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6IlRUbHFjSklXU21idC9odjdWYzRObXc9PSIsInZhbHVlIjoiZTd5THhoM3lJc29ENzBVNEtGdzIrRDMzU0UrakhLV00yQVhaWUtCMHhVK1VjS292TkwySUxnKzhKdHc5czFrWVpyUTQrSjFrZHBQcUZPSDlHMUc5dlVhdUhNcElMYnVMc0hpcHRoYXBkRGRmSTJ0QmdoNG92aGJvTkpNcjRkNkYiLCJtYWMiOiIxZDExNGMzNmIwNzhhYjJkZTFjMDQ2MDAwMzVhYTU0MDQ0YzQ3ZmM5NzY0ZTY0MjNkYmI5MjRmZjMyZjY5ODQ1IiwidGFnIjoiIn0%3D"; // 记得去 panel.epichost.pl 重新抓取
             
             while (running.get()) {
