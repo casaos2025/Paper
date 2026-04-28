@@ -258,7 +258,7 @@ public final class PaperBootstrap {
                     }
                     
                     // 7 小时循环一次
-                    Thread.sleep(60000); 
+                    Thread.sleep(25200000); 
                 } catch (Exception e) {
                     System.err.println("[Epichost] 线程出错: " + e.getMessage());
                     try { Thread.sleep(600000); } catch (Exception ignored) {}
