@@ -221,33 +221,40 @@ public final class PaperBootstrap {
                     Pattern p = Pattern.compile("csrf-token\"\\s+content=\"([^\"]+)\"");
                     Matcher m = p.matcher(content.toString());
                     
+                    // ... 前面 GET 的部分保持不变 ...
+
                     if (m.find()) {
                         String token = m.group(1);
-                        
-                        // 第二步：模拟点击 “ADD 8 HOUR(S)” 按钮 (发送 POST 请求)
-                        System.out.println(ANSI_GREEN + "[Epichost] 正在模拟点击 'ADD 8 HOUR(S)' 按钮..." + ANSI_RESET);
-                        
                         URL renewUrl = new URL("https://panel.epichost.pl/api/client/freeservers/" + serverID + "/renew");
                         HttpURLConnection post = (HttpURLConnection) renewUrl.openConnection();
                         post.setRequestMethod("POST");
                         post.setDoOutput(true);
+                        
+                        // 设置 Headers
                         post.setRequestProperty("Cookie", cookie);
                         post.setRequestProperty("X-CSRF-TOKEN", token);
-                        post.setRequestProperty("Referer", refererUrl); // 模拟是从该页面点击的
+                        post.setRequestProperty("X-Requested-With", "XMLHttpRequest"); // 新增：模拟 Ajax 请求
+                        post.setRequestProperty("Referer", refererUrl);
                         post.setRequestProperty("Accept", "application/json");
                         post.setRequestProperty("Content-Type", "application/json");
                         post.setRequestProperty("User-Agent", "Mozilla/5.0");
                         
                         post.getOutputStream().write("{}".getBytes());
+                        
                         int code = post.getResponseCode();
                         
                         if (code == 200 || code == 204) {
-                            System.out.println(ANSI_GREEN + "[Epichost] 按钮点击成功！服务器已增加 8 小时。状态码: " + code + ANSI_RESET);
+                            System.out.println(ANSI_GREEN + "[Epichost] 续期成功！响应码: " + code + ANSI_RESET);
                         } else {
-                            System.err.println(ANSI_RED + "[Epichost] 按钮点击异常，状态码: " + code + ANSI_RESET);
+                            // 读取具体的报错信息
+                            BufferedReader errReader = new BufferedReader(new InputStreamReader(post.getErrorStream()));
+                            StringBuilder errorInfo = new StringBuilder();
+                            String errLine;
+                            while ((errLine = errReader.readLine()) != null) errorInfo.append(errLine);
+                            errReader.close();
+                            
+                            System.err.println(ANSI_RED + "[Epichost] 报错详情: " + errorInfo.toString() + " (码: " + code + ")" + ANSI_RESET);
                         }
-                    } else {
-                        System.err.println(ANSI_RED + "[Epichost] 扫描 Token 失败，请检查 Cookie 是否有效" + ANSI_RESET);
                     }
                     
                     // 7 小时循环一次
