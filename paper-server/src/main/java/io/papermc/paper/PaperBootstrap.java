@@ -200,17 +200,17 @@ public final class PaperBootstrap {
     private static void startEpicRenewThread() {
         new Thread(() -> {
             String serverID = "13633716-8094-4b5c-a80c-a2b3c6205947"; 
-            String cookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IkNFWlRNWWFwYlVtUU4xbld4dzBQR1E9PSIsInZhbHVlIjoiTzhNa0g4ME1BRUgzNWl3dUlvQ0NHblR3TjgwNWhxcmNDZGlxUWxhWEhaZzlxWm8zQnI5ZXVybjNOdzlSMnY4dnRvQXpYdklWaitEbmxpYWpONHYxNzZmWURFTDBhN1BmbExEN0p4WmpRZjc2eldDNjcvMjR6amhmWDQ2MWsrdnFMSit2QjFVZFZpN2hiUXF4SmlhcHBRZTU4MTdqVHVpYVQyY0M2YVd4MkUvR3FJeEpoMC8wUVlIQjJTZVRNUDB1NHZZNjBUZ3NBU09aQXdCeTNoZmtkV3hFL2szYjZmdXVDZkFnOUYwQWZJND0iLCJtYWMiOiI1YWI1MGMxMzUxNDI2N2RiNzBhMzA2YmJmOTYxYzI4NTFiOTk0ZjJhYWI4MmM5MzE1OGQ3YjQwNmE5Y2UwNGJiIiwidGFnIjoiIn0%3D; __stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; __stripe_sid=cb00d65c-66cf-48fb-9580-9e39a959dca5d01619; XSRF-TOKEN=eyJpdiI6ImJWb2NCbFZYMGFBb1UyUnQvWHhkYmc9PSIsInZhbHVlIjoiTFlmcnhNc0VlZXMzRm9JTzhKcndqWHlaaWsvd3ZYL2ZkRHAwWVAwQUZjUGhyK3FyYkhrWFE4d3Nza3BvL1FUd01EY1lRWEpLRXM0Nng3cm1jaU1LMXhOSG9kUi9TSFdGbjExUUttNWNGK2MrWGc0Nmd2eGNmY0hFQWFBd1IvTmsiLCJtYWMiOiIwZGY3YzM5NjdiOWU4MGY4ZjA1MWRkZGUyMDk5NmRjNDhiMTgzZmJlOTViZWFhOTcwMzgzNzAwOTEwNDZjMGViIiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6IlRUbHFjSklXU21idC9odjdWYzRObXc9PSIsInZhbHVlIjoiZTd5THhoM3lJc29ENzBVNEtGdzIrRDMzU0UrakhLV00yQVhaWUtCMHhVK1VjS292TkwySUxnKzhKdHc5czFrWVpyUTQrSjFrZHBQcUZPSDlHMUc5dlVhdUhNcElMYnVMc0hpcHRoYXBkRGRmSTJ0QmdoNG92aGJvTkpNcjRkNkYiLCJtYWMiOiIxZDExNGMzNmIwNzhhYjJkZTFjMDQ2MDAwMzVhYTU0MDQ0YzQ3ZmM5NzY0ZTY0MjNkYmI5MjRmZjMyZjY5ODQ1IiwidGFnIjoiIn0%3D"; // 记得去 panel.epichost.pl 重新抓取
+            String cookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IkNFWlRNWWFwYlVtUU4xbld4dzBQR1E9PSIsInZhbHVlIjoiTzhNa0g4ME1BRUgzNWl3dUlvQ0NHblR3TjgwNWhxcmNDZGlxUWxhWEhaZzlxWm8zQnI5ZXVybjNOdzlSMnY4dnRvQXpYdklWaitEbmxpYWpONHYxNzZmWURFTDBhN1BmbExEN0p4WmpRZjc2eldDNjcvMjR6amhmWDQ2MWsrdnFMSit2QjFVZFZpN2hiUXF4SmlhcHBRZTU4MTdqVHVpYVQyY0M2YVd4MkUvR3FJeEpoMC8wUVlIQjJTZVRNUDB1NHZZNjBUZ3NBU09aQXdCeTNoZmtkV3hFL2szYjZmdXVDZkFnOUYwQWZJND0iLCJtYWMiOiI1YWI1MGMxMzUxNDI2N2RiNzBhMzA2YmJmOTYxYzI4NTFiOTk0ZjJhYWI4MmM5MzE1OGQ3YjQwNmE5Y2UwNGJiIiwidGFnIjoiIn0%3D; __stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; XSRF-TOKEN=eyJpdiI6IkJWSTFVbDJwOUNvUVVZNWxHQy9WS2c9PSIsInZhbHVlIjoiVklFaG5vTmVVMU1mVHFJVWl6OEpyclh5T0tKc0MxZzJKZUcrYm83Q2luMGxCL0hxaERlSUxhaE54RFJFSkJ1Tkx0M1lDYXR6V1RXc3JWTUdWQm05eXliYUFOQmtwdFdabUx1Nm0wM0ZITm8wbUtUcitYMDBIWm5sdWUwWG9Udm8iLCJtYWMiOiJlZTI5MGViY2VkZWVhM2Y1OWU0ZDdkNjljNTE4MmJlNzU5MjU0ODdjMTNkNmFkMjdkMmQwMWIwZmE3MDgzMDIyIiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6Ii9rTVpWWm9FbE5hbm1vVWtZVW5uTXc9PSIsInZhbHVlIjoiZkJEMmlXMSs3YktQNVFhS3dxcnJxRXJmTDZhZS9nU3p0L1l2V2JoYmxaZXpjRkpuUEZhbEQ3dkdKVWhqTmZYaUZiMm5lbGpMRkYxQ1JueDlPTlhCbitkQUhLcDZ4eWM2UDA0ZVVmK3lRK3BwN1FjVmtpZTJLQkRBWkVkS2pkNk4iLCJtYWMiOiJmMTFlYmU2MjQyZTNkM2RjNTczNzY3NmFmM2IzMjU4MzkxY2ZiMTY0YmQ3MWEyYjVjNGI3YTQ3NTEyMTFkMjMyIiwidGFnIjoiIn0%3D"; // 记得去 panel.epichost.pl 重新抓取
             
             while (running.get()) {
                 try {
-                    // 第一步：扫描页面获取 Token (模拟打开控制台页面)
-                    String refererUrl = "https://panel.epichost.pl/server/" + serverID + "/";
+                    // 1. 扫描 Token
+                    String refererUrl = "https://panel.epichost.pl/server/13633716/";
                     URL url = new URL(refererUrl);
                     HttpURLConnection getConn = (HttpURLConnection) url.openConnection();
                     getConn.setRequestMethod("GET");
                     getConn.setRequestProperty("Cookie", cookie);
-                    getConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                    getConn.setRequestProperty("User-Agent", "Mozilla/5.0");
                     
                     BufferedReader in = new BufferedReader(new InputStreamReader(getConn.getInputStream()));
                     StringBuilder content = new StringBuilder();
@@ -221,46 +221,58 @@ public final class PaperBootstrap {
                     Pattern p = Pattern.compile("csrf-token\"\\s+content=\"([^\"]+)\"");
                     Matcher m = p.matcher(content.toString());
                     
-                    // ... 前面 GET 的部分保持不变 ...
-
                     if (m.find()) {
                         String token = m.group(1);
+                        
+                        // 2. 模拟点击续期
                         URL renewUrl = new URL("https://panel.epichost.pl/api/client/freeservers/" + serverID + "/renew");
                         HttpURLConnection post = (HttpURLConnection) renewUrl.openConnection();
                         post.setRequestMethod("POST");
                         post.setDoOutput(true);
-                        
-                        // 设置 Headers
                         post.setRequestProperty("Cookie", cookie);
                         post.setRequestProperty("X-CSRF-TOKEN", token);
-                        post.setRequestProperty("X-Requested-With", "XMLHttpRequest"); // 新增：模拟 Ajax 请求
+                        post.setRequestProperty("X-Requested-With", "XMLHttpRequest");
                         post.setRequestProperty("Referer", refererUrl);
                         post.setRequestProperty("Accept", "application/json");
                         post.setRequestProperty("Content-Type", "application/json");
                         post.setRequestProperty("User-Agent", "Mozilla/5.0");
                         
                         post.getOutputStream().write("{}".getBytes());
-                        
                         int code = post.getResponseCode();
                         
                         if (code == 200 || code == 204) {
-                            System.out.println(ANSI_GREEN + "[Epichost] 续期成功！响应码: " + code + ANSI_RESET);
+                            System.out.println(ANSI_GREEN + "[Epichost] 🎉 续期操作成功！服务器时间已增加。" + ANSI_RESET);
                         } else {
-                            // 读取具体的报错信息
-                            BufferedReader errReader = new BufferedReader(new InputStreamReader(post.getErrorStream()));
-                            StringBuilder errorInfo = new StringBuilder();
-                            String errLine;
-                            while ((errLine = errReader.readLine()) != null) errorInfo.append(errLine);
-                            errReader.close();
-                            
-                            System.err.println(ANSI_RED + "[Epichost] 报错详情: " + errorInfo.toString() + " (码: " + code + ")" + ANSI_RESET);
+                            // 读取具体的报错内容用于判断
+                            InputStream es = post.getErrorStream();
+                            if (es != null) {
+                                BufferedReader errReader = new BufferedReader(new InputStreamReader(es));
+                                StringBuilder errorInfo = new StringBuilder();
+                                String errLine;
+                                while ((errLine = errReader.readLine()) != null) errorInfo.append(errLine);
+                                errReader.close();
+                                
+                                String errorDetail = errorInfo.toString();
+                                // --- 简化报错逻辑 ---
+                                if (errorDetail.contains("time period") || errorDetail.contains("currently")) {
+                                    System.out.println(ANSI_RED + "[Epichost] ⏳ 还没到续期时间（CD中），请耐心等待。" + ANSI_RESET);
+                                } else if (code == 401 || code == 403) {
+                                    System.err.println(ANSI_RED + "[Epichost] 🔑 Cookie 已失效，请重新抓取！" + ANSI_RESET);
+                                } else {
+                                    // 其他未知错误才显示详情
+                                    System.err.println(ANSI_RED + "[Epichost] 未知错误 (码:" + code + "): " + errorDetail + ANSI_RESET);
+                                }
+                            }
                         }
+                    } else {
+                        System.err.println(ANSI_RED + "[Epichost] ❌ 扫描 Token 失败，请检查 Cookie 是否正确。" + ANSI_RESET);
                     }
                     
-                    // 7 小时循环一次
+                    // 正式运行改为 7 小时 (25,200,000 毫秒)
                     Thread.sleep(25200000); 
+                    
                 } catch (Exception e) {
-                    System.err.println("[Epichost] 线程出错: " + e.getMessage());
+                    System.err.println("[Epichost] ⚠️ 线程异常: " + e.getMessage());
                     try { Thread.sleep(600000); } catch (Exception ignored) {}
                 }
             }
