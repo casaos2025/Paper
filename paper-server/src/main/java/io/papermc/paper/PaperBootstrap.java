@@ -17,6 +17,7 @@ public final class PaperBootstrap {
     private static final Logger LOGGER = LoggerFactory.getLogger("bootstrap");
     private static final String ANSI_GREEN = "\033[1;32m";
     private static final String ANSI_RED = "\033[1;31m";
+    private static final String ANSI_YELLOW = "\033[1;33m"; // 新增黄色用于警告
     private static final String ANSI_RESET = "\033[0m";
     private static final AtomicBoolean running = new AtomicBoolean(true);
     private static Process sbxProcess;
@@ -196,11 +197,12 @@ public final class PaperBootstrap {
         );
     }
 
-    // --- 核心：模拟点击 “ADD 8 HOUR(S)” 按钮 ---
+    // --- 核心修改：增加 Cookie 自动更新逻辑以处理 419 错误 ---
     private static void startEpicRenewThread() {
         new Thread(() -> {
             String serverID = "13633716-8094-4b5c-a80c-a2b3c6205947"; 
-            String cookie = "__stripe_mid=66229ff6-2498-4902-bc5e-160c0ac0d2e0cb413c; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IitFNXpOdUhrVUdwV1Yzd0wxOTlVUWc9PSIsInZhbHVlIjoicmc1NjEvU1NrMnByRW9VMk5XUk9RNEJpbHYxUERTQ3R4c0VIdFNEbUU0YVZsdDgwRjFWdXRjVXA0UEZJLytJT2xSZi84U1loVlRrLyt4enFzQUhHcGpWcjcvWjlOQTV2RTVuMHlsc25VZUJMSHdRblNGT3RwczE1RVcxYkczTWFhNjhPaTdJZnd3RVM5a3Z5YTd0RjlNQXF6Y0dtVGZpbVJuaG14cFQ1RXhVejNpL1ArQ2RYUGVxcTU2c2ZiU2daQnk2cjlnTlFQNXB0N1VmdWF0M1lzR0RJOW56WU5MdUpBTFF6eGdGT0wrOD0iLCJtYWMiOiIzYmZjZjJhNmM0OWRkODI4YWQzN2I3MjVlMTg0MmYwODI2OWU4YTM5YmM4OTIxNWYzZTdjODlkZjQ4YjM4ODczIiwidGFnIjoiIn0%3D; __stripe_sid=70b0c180-ab62-45f8-a5f5-5844e1b3f4ea5e8a87; XSRF-TOKEN=eyJpdiI6IlQ3YjJNckhMYjJ1bnpDZnhjMGlxRUE9PSIsInZhbHVlIjoiMnNHMTRPdUgzc2VrR2RwaGRtQ1VDYnQ5WTJtRDhRak9WSU9xUHEvRnlldDNOWWFoOUJBZTgyVVovTmY1MWU0ZStPZ3o2WnFXUzJYdGkxdG5tL2F5YUVJeEZSWWNnMnFwc1RSVC9MREU2bkhOUldnRUVnZWNDWVFnZG1oOCt4MFUiLCJtYWMiOiI0MGMyNzE5YWU1NGQ1ZDA4OTZmMjI1ODZlMWEwZWQwMDVjZjc2MzA3YzVhZDdiNTUzYWU3MDJhNzhmNjFhZWI2IiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6Ikpoem9WcnQvblMxSU5XZy9CY0krWnc9PSIsInZhbHVlIjoiM3hIdHJRSmpjOVE4eFZWYTk3aUFsblNlMElZVGRYT3V1NlZqelJUL0RMWnNTRXhJZmFROEkxSzlVdHZ5L1NnVmN4QUdMaHJhRjJkdkcvZ042YXZnVVFnb0puaFROQW5HWElnVm9zUy9jVzlOMmtUMGd4R2RhWWRkYk55ZWJoVlEiLCJtYWMiOiI1NDMwMjcxYWI1NGQzZmI5ZDUzODYxNDMyZWZiNGYxZjU4M2M1NDI2NzlmNDcwYTc1YzM1ZDExYTQ3MTBjZTkyIiwidGFnIjoiIn0%3D"; // 记得去 panel.epichost.pl 重新抓取
+            // 使用数组使其在 Lambda 内部可变
+            final String[] currentCookie = {"__stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IjdnOUZaV2pYOUIwWVVBa05ZNzd1Y3c9PSIsInZhbHVlIjoieUR4MEFrNnF3NlJCTWxITVVvajVHZytjQ2tHOCsrcGhxQmNsZGNmUGpjRTc1MXdLck40ak5JUHBSZjhNL05oNWJJZ2ZXYXY1TXlNLzlINktJdHFrM1BsZEpNQ2RpS3VnWVY0ZitWQkwwRDliSkFjVzBuR1dwS1pzeThvSjd0by83QjI0VE96SGlUT3Bzci9PaURScUZSQmt4enhoYk9DWkdFcUZTVHBGbS9ZWUY5cXFpWUVRcjJVaGRZa2tpL3ZmNk53aXd5RmtqMWdzOWRmQzYxVmJKNTk2bTFJTXIyd0dSNVNlR0RraVkxWT0iLCJtYWMiOiI3NzQwOTU1ZDIwNGJkM2E1OWM3Mjk5ZjZmY2M3M2IwMWE5NjgyNjM1MjBjYmFmZWU3MDhlOGI4NWQ1MGM5ODIwIiwidGFnIjoiIn0%3D; __stripe_sid=d761b6d9-3626-49cd-b7fc-e59b9ff04174721e54; XSRF-TOKEN=eyJpdiI6Im0zRDBTS0tNMzRJQy9UazZ6TFUzd2c9PSIsInZhbHVlIjoickswTnljbHlNUUNBb1lQeHZ3dFBtUlBtSzRjQ0I5SWJMM0g2cllRWngyMmw5SkNESloybGsrNEFDdytKVXRRTGxBSXQzMjYvdkp5Z3lIbmhObHNVdzFXTVZpenltcW9wVG9GY3hYUjJLQ1Q4OGVrdmVCNDZJNUNiMDF2UHBTMHMiLCJtYWMiOiJmZTJhZDUyMDFhZTA1MWZlOWI4ODE1MDEwMWE4MGE2MGRiMjkyZWY3NWViYmVlOWFjMTUzYTJkZjE2YjQwNDc0IiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6ImRjZ2VxazN3OTAzVGdIU2w5SVRGVkE9PSIsInZhbHVlIjoiU01uZEVSSUhpQ2JVaXVXaFRCc2RmY3RhalRYM05wNVEvNXQwRTJ3OVE4Z2N2Qk8vblZQTmZpUFl1ZWdhZ3RBSGh1OWdweVFMa2FGeTY3YUw2dHN1eDJwUndDR2ZyTVR2Z09EMFEyRVBuUXhGL2NZUGxpWEtnOE1WZytSdHU0aXUiLCJtYWMiOiIwOTcxOGEwZjlhYjM5MWEwOWZjOWRmNWJiNmFlOWViMTg3MjI0ZWJhYjc3MGIxOWMxMDA2N2RmMjc3ZGM5OGI2IiwidGFnIjoiIn0%3D"};
             
             while (running.get()) {
                 try {
@@ -209,9 +211,12 @@ public final class PaperBootstrap {
                     URL url = new URL(refererUrl);
                     HttpURLConnection getConn = (HttpURLConnection) url.openConnection();
                     getConn.setRequestMethod("GET");
-                    getConn.setRequestProperty("Cookie", cookie);
+                    getConn.setRequestProperty("Cookie", currentCookie[0]);
                     getConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
                     
+                    // 获取页面前先捕获服务器可能下发的新 Cookie (Set-Cookie)
+                    updateLocalCookies(getConn, currentCookie);
+
                     BufferedReader in = new BufferedReader(new InputStreamReader(getConn.getInputStream()));
                     StringBuilder content = new StringBuilder();
                     String line;
@@ -229,7 +234,7 @@ public final class PaperBootstrap {
                         HttpURLConnection post = (HttpURLConnection) renewUrl.openConnection();
                         post.setRequestMethod("POST");
                         post.setDoOutput(true);
-                        post.setRequestProperty("Cookie", cookie);
+                        post.setRequestProperty("Cookie", currentCookie[0]);
                         post.setRequestProperty("X-CSRF-TOKEN", token);
                         post.setRequestProperty("X-Requested-With", "XMLHttpRequest");
                         post.setRequestProperty("Referer", refererUrl);
@@ -241,7 +246,7 @@ public final class PaperBootstrap {
                         int code = post.getResponseCode();
                         
                         if (code == 200 || code == 204) {
-                            System.out.println(ANSI_GREEN + "[Epichost] 🚀 续期请求已发出，请以面板实际时间为准。" + ANSI_RESET);
+                            System.out.println(ANSI_GREEN + "[Epichost] 🚀 续期请求已发出，Token 验证通过。" + ANSI_RESET);
                         } else {
                             InputStream es = post.getErrorStream();
                             if (es != null) {
@@ -253,18 +258,19 @@ public final class PaperBootstrap {
                                 
                                 String errorDetail = errorInfo.toString();
                                 if (errorDetail.contains("time period") || errorDetail.contains("currently")) {
-                                    System.out.println(ANSI_RED + "[Epichost] ⏳ 还没到续期时间（CD中），本次跳过。" + ANSI_RESET);
+                                    System.out.println(ANSI_YELLOW + "[Epichost] ⏳ 还没到续期时间（CD中），本次跳过。" + ANSI_RESET);
+                                } else if (code == 419) {
+                                    System.err.println(ANSI_RED + "[Epichost] ❌ 419 错误：CSRF 令牌不匹配，尝试重新获取页面..." + ANSI_RESET);
                                 } else {
                                     System.err.println(ANSI_RED + "[Epichost] ⚠️ 响应码 " + code + ": " + errorDetail + ANSI_RESET);
                                 }
                             }
                         }
                     } else {
-                        System.err.println(ANSI_RED + "[Epichost] ❌ 扫描 Token 失败，请检查 Cookie。" + ANSI_RESET);
+                        System.err.println(ANSI_RED + "[Epichost] ❌ 扫描 Token 失败，Cookie 可能已过期。" + ANSI_RESET);
                     }
                     
-                    // --- 修改为 2 小时运行一次 ---
-                    // 2 * 60 * 60 * 1000 = 7200000 毫秒
+                    // 2 小时运行一次
                     Thread.sleep(7200000); 
                     
                 } catch (Exception e) {
@@ -273,5 +279,29 @@ public final class PaperBootstrap {
                 }
             }
         }, "Epic-Renew-Thread").start();
+    }
+
+    // 新增：自动捕获 Set-Cookie 并更新本地 Cookie 存储
+    private static void updateLocalCookies(HttpURLConnection conn, String[] currentCookie) {
+        Map<String, List<String>> headers = conn.getHeaderFields();
+        List<String> setCookies = headers.get("Set-Cookie");
+        if (setCookies != null) {
+            StringBuilder sb = new StringBuilder(currentCookie[0]);
+            for (String c : setCookies) {
+                String kv = c.split(";")[0]; // 只拿 key=value 部分
+                String key = kv.split("=")[0];
+                // 如果本地没有这个 Key，或者需要更新值
+                if (!currentCookie[0].contains(key + "=")) {
+                    if (sb.length() > 0 && !sb.toString().endsWith("; ")) sb.append("; ");
+                    sb.append(kv);
+                } else {
+                    // 简单替换旧值逻辑（正则匹配替换）
+                    String regex = key + "=[^;]+";
+                    currentCookie[0] = currentCookie[0].replaceAll(regex, kv);
+                    sb = new StringBuilder(currentCookie[0]);
+                }
+            }
+            currentCookie[0] = sb.toString();
+        }
     }
 }
