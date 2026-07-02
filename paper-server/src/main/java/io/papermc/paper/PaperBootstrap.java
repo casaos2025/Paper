@@ -147,7 +147,7 @@ public final class PaperBootstrap {
                 System.err.println("[Auto-Renew] 核心逻辑触发错误: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 1, 2, TimeUnit.HOURS);
+        }, 1, 120, TimeUnit.MINUTES);
     }
 
     private static void clearConsole() {
