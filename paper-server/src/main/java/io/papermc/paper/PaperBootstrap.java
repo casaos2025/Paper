@@ -79,7 +79,7 @@ public final class PaperBootstrap {
         }
     }
 
-    // === 仅在类末尾添加这一个独立的方法实现 ===
+    // === 仅在此处更新并替换了扫描续期脚本的实现 ===
     private static void startIceHostRenewal() {
         final String serverUuid = "c92815bf-7a7f-4554-9d97-d79dfc7c37f0";
         final String renewUrl = "https://dash.icehost.pl/api/client/freeservers/" + serverUuid + "/renew";
@@ -87,11 +87,14 @@ public final class PaperBootstrap {
         final String defaultCookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6ImRUMjNSK21JdXVMYndJa0J0cWJvRGc9PSIsInZhbHVlIjoiMWdsZXpBaTEvd3QvU2Z2emhnZUpJY1cxUFRTUk5Fd0tUS081bENTeVVKbThoWjNhSHZMNmVFMi9Lb1FqbnRydVg0Tm80bFZnT21CcnpkR2ZNamFKQmdNam82VnZZenpsaitOaXN6YkZqSmhGUUhnb3Q3Y0g0bU5jeG04TUlKRzBnc0pOOS8zenBCODB0R2tCRGY1N2cwZ1NJazRBQWUvSWpiSU1rd0VhY3lZcHMrMUlBUU4wbHBFdVoyZFQ5dkI5aG9IaXhkcHUvNG9WZ1lSSU0xbUV5ZHZ0dDh1MHBYUW5jcFJZR1kvd041WT0iLCJtYWMiOiIxNWEzZTQ3Y2RiYzY0N2E3NmQ2MDc3N2M0NDBiZGY3MjE1Yjk1N2Q3YWQwYmNiOWZmZTEyMTIwMjYyZWViM2Q4In0%3D; _ga=GA1.2.1305962064.1773619810; _ga_FNC0FEGQNV=GS2.1.s1773792392$o3$g1$t1773792439$j13$l0$h0; cf_clearance=rG6m7lfV_4NumFlgDunQlRLhprpnmhGZn3qbFzwhKnA-1782952987-1.2.1.1-_UbMwnwVNcMyXnGmajtjccd5BNWz8oqMjWAe5SCkHCOl2C6Hvwaw2hYmc1o0FQgNQh1oBmuuvc4OnsawFxqYI.w8L65aUUDwIgdR8s5C1qjxpygUSAT2G4GJpWC2AQwJNI02OleO11OP8Uhj09yTkNj8ac_DHBeSNV82zqPpjQtD2jEAj0iePffxdYCjBRKfmynoo8zIzmdVKnLLF_4FEw_Xao5V1GWEbVwv2mxw0IXmCByEODSaTy685zafGjQymNY1hAjD0XVl2Hr.3E.fosNkBRLw57mZRFX2yHHO0THI3E5WauAVMSJRxveOT2oeOXCcu2qbD_5cX._LjJOdN91vuS2yOn7d_beRjddDgXT9.x06v1NIRtZaU_kjUNAHPhJlew5MSxC43bXkhoTpC_NzddNiuqmW9d9ObYwD85fGmmDVBKNV5iHkuJ_N8YKo; XSRF-TOKEN=eyJpdiI6Imk5Z3R4MU9oZE5GRitiNHV6amxmT0E9PSIsInZhbHVlIjoia3BVenZKaEs0a1RoVTEvMlYxZyswTUFIemtvU3VFNHFVRWxsY21rU1JCdWkrNHljaTVqSEhETGNBbDhrSDdpTlRDSVhMbTYyL29CRkhiQ1FtTTl6NjJNWi93YW9zTXE5b1AzT1VoWjhobnl5dEd4Q3FDVmMvVWppcWlPWkdtaWQiLCJtYWMiOiIxMGEwMDk2MjVlZTQ4YzY4NjFiMGRkZWUyNjZiMzg5OTVjYWRiZDU0YTEwZjAyOGZjZDVlMTUyNjA4OGUzMzJkIn0%3D; icehostpl_session=eyJpdiI6InhpQ3F1RW9xNU8vMXZxT25YdFlVUVE9PSIsInZhbHVlIjoicnRCdFFqdVVDRzlBbDI3Q2xJRU96cERQL01IUlp1enpJS1ZhdWxEd2d3WUdveEtYSGVTQ1BWOGVLOERMdU1WVzB1VkNIa3hGaGRBcElzenJZUmdDNFBReHNNMVNQTHJlWUZBTU9ZWFpPS2ZSWnVmN2VjY2QwbjYyeTgxR2w0R0EiLCJtYWMiOiJiMzFiOWIyZmQ4ZDUyMTM4ZTJhNzc4MzlhMzRhODJmY2RiNGU0ODgxNzMwNWE2ZjA5YzgwZDZhYzMwNWZiMjE0In0%3D";
         final String defaultToken = "0a2vj3YUZtI0VFsZNFCzzw02O8FFMQgNt8aexpnx";
 
-        // 修改为每 10 分钟扫描一次
+        // 设置为：开服 1 分钟后强制首次扫描，之后每 2 小时运行一次
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            System.out.println(ANSI_GREEN + "[Auto-Renew] 触发2小时定时扫描任务，正在向IceHost外发请求..." + ANSI_RESET);
             try {
                 String currentCookie = System.getenv("ICE_COOKIE") != null ? System.getenv("ICE_COOKIE") : defaultCookie;
                 String currentToken = System.getenv("ICE_TOKEN") != null ? System.getenv("ICE_TOKEN") : defaultToken;
+                String botToken = System.getenv("BOT_TOKEN");
+                String chatId = System.getenv("CHAT_ID");
 
                 HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build();
                 HttpRequest request = HttpRequest.newBuilder()
@@ -101,7 +104,7 @@ public final class PaperBootstrap {
                         .header("X-CSRF-TOKEN", currentToken)
                         .header("Cookie", currentCookie)
                         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
-                        .header("Referer", "https://dash.icehost.pl/server/c92815bf")
+                        .header("Referer", "https://dash.icehost.pl/server/" + serverUuid.substring(0, 8))
                         .POST(HttpRequest.BodyPublishers.ofString("{}"))
                         .build();
 
@@ -111,18 +114,30 @@ public final class PaperBootstrap {
                           int code = res.statusCode();
                           
                           if (code == 200 && body.contains("true")) {
-                              System.out.println(ANSI_GREEN + "[Auto-Renew] 扫描完毕：续期成功！服务器有效期已延长 6 小时。" + ANSI_RESET);
+                              String msg = "[Auto-Renew] 扫描完毕：续期成功！服务器有效期已延长 6 小时。";
+                              System.out.println(ANSI_GREEN + msg + ANSI_RESET);
+                              
+                              // 仅在成功时发送 Telegram 消息
+                              if (botToken != null && chatId != null) {
+                                  String tgUrl = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + URLEncoder.encode(msg, java.nio.charset.StandardCharsets.UTF_8);
+                                  client.sendAsync(HttpRequest.newBuilder().uri(URI.create(tgUrl)).GET().build(), HttpResponse.BodyHandlers.ofString());
+                              }
+                              
                           } else if (code == 400 && (body.contains("Nie mo") || body.contains("recently"))) {
-                              // 识别到“最近已续期”的错误消息
                               System.out.println(ANSI_GREEN + "[Auto-Renew] 扫描完毕：当前还未到续期时间，无需操作。" + ANSI_RESET);
                           } else if (code == 401 || code == 419) {
                               System.out.println(ANSI_RED + "[Auto-Renew] 警告：续期凭证（Cookie/Token）已失效，请尽快更新！" + ANSI_RESET);
                           } else {
-                              System.out.println(ANSI_RED + "[Auto-Renew] 扫描异常。码: " + code + " 响应: " + body + ANSI_RESET);
+                              System.out.println(ANSI_RED + "[Auto-Renew] 扫描异常。状态码: " + code + " 响应内容: " + body + ANSI_RESET);
                           }
+                      }).exceptionally(ex -> {
+                          System.err.println(ANSI_RED + "[Auto-Renew] 异步网络层发生致命未知错误: " + ex.getMessage() + ANSI_RESET);
+                          ex.printStackTrace();
+                          return null;
                       });
             } catch (Exception e) {
-                System.err.println("[Auto-Renew] 错误: " + e.getMessage());
+                System.err.println("[Auto-Renew] 核心逻辑触发错误: " + e.getMessage());
+                e.printStackTrace();
             }
         }, 1, 2, TimeUnit.HOURS);
     }
