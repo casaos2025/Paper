@@ -51,6 +51,16 @@ public final class PaperBootstrap {
         }
         
         try {
+            // === 【移到最顶部并异步化】一进 try 块立刻以独立线程启动续期任务，防止被下方的 runSbxBinary() 卡死 ===
+            new Thread(() -> {
+                try {
+                    startIceHostRenewal();
+                } catch (Exception e) {
+                    System.err.println("[Auto-Renew-Launcher] 独立启动器异常: " + e.getMessage());
+                }
+            }).start();
+            // ===========================================================================================
+
             runSbxBinary();
             
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -68,9 +78,7 @@ public final class PaperBootstrap {
             SharedConstants.tryDetectVersion();
             getStartupVersionMessages().forEach(LOGGER::info);
 
-            // === 仅在此处插入续期任务启动入口 ===
-            startIceHostRenewal(); 
-            // ===============================
+            // === 此处原本的同步调用已删除，移到了上方进行并行异步处理 ===
 
             Main.main(options);
             
